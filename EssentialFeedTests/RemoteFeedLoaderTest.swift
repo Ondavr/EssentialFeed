@@ -64,7 +64,7 @@ class RemoteFeedLoaderTests: XCTestCase {
         let (sut, client) = makeSUT()
         
         expact(sut, toCompleteWith: .success([])) {
-            let empytJson = Data("{\"items\": []}".utf8)
+            let empytJson = makeItemsJSON([])
             client.complete(withStatusCode: 200, data: empytJson)
         }
     }

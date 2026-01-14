@@ -13,9 +13,9 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     func test_init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
-//        XCTAssertNil(client.requestURL)
+        //        XCTAssertNil(client.requestURL)
     }
- 
+    
     func test_load_requestsDataFromURL() throws {
         let url = URL(string: "https://examplee.com")!
         let (sut, client) = makeSUT(url: url)
@@ -71,7 +71,7 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     func test_laod_deliversItemOn200HttpResponseWithJSONItems() {
         let (sut, client) = makeSUT()
-     
+        
         let item1 = makeItem(
             id: .init(),
             imageURL: URL(string: "https://example.com")!)
@@ -95,7 +95,14 @@ class RemoteFeedLoaderTests: XCTestCase {
     private func makeSUT(url: URL = URL(string: "https://example.com")!) -> (sut: RemoteFeedLoader, client: HttpClientSpy) {
         let client = HttpClientSpy()
         let sut = RemoteFeedLoader(url: url, client: client)
+        trackForMemoryLeaks(sut)
         return (sut, client)
+    }
+    
+    private func trackForMemoryLeaks(_ instanse: AnyObject, file: StaticString = #file, line: UInt = #line) {
+        addTeardownBlock { [weak instanse] in
+            XCTAssertNil(instanse, "leak detected", file: (file), line: line)
+        }
     }
     
     func makeItem(id: UUID, imageURL: URL, description: String? = nil, location: String? = nil) -> (model: FeedItem, json: [String:Any]) {

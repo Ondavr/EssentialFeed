@@ -46,7 +46,8 @@ class RemoteFeedLoaderTests: XCTestCase {
         let simples = [199,201,300,500, 400]
         simples.enumerated().forEach { index, count in
             expact(sut, toCompleteWith: .failure(.invalidData)) {
-                client.complete(withStatusCode:count, at: index)
+                let json = makeItemsJSON([])
+                client.complete(withStatusCode:count,data: json, at: index)
             }
         }
     }

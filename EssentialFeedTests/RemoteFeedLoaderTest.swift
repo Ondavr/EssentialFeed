@@ -19,8 +19,16 @@ class RemoteFeedLoaderTests: XCTestCase {
     func test_load_requestsDataFromURL() throws {
         let url = URL(string: "https://examplee.com")!
         let (sut, client) = makeSUT(url: url)
-//        sut.load()
+        sut.load(complition: { _ in})
         XCTAssertNotNil(client.requestURL)
+    }
+    
+    func test_load_requestsDataFromURLTwice() throws {
+        let url = URL(string: "https://examplee.com")!
+        let (sut, client) = makeSUT(url: url)
+        sut.load(complition: { _ in})
+        sut.load(complition: { _ in})
+        XCTAssertEqual(client.requestURL, [url, url]  )
     }
     
     func test_load_deliverErrorOnClientError(){
@@ -34,6 +42,16 @@ class RemoteFeedLoaderTests: XCTestCase {
         
     }
     
+//    func test_load_deliverErrorOnNon200HTTPResponse(){
+//        let (sut, client) = makeSUT()
+//        var captueredError = [RemoteFeedLoader.Error]()
+//        sut.load {captueredError.append($0)}
+//        
+//        client.complete(withStatusCode:400)
+//        XCTAssertEqual(captueredError, [.invalidData])
+//        
+//    }
+    
     private func makeSUT(url: URL = URL(string: "https://example.com")!) -> (sut: RemoteFeedLoader, client: HttpClientSpy) {
         let client = HttpClientSpy()
         let sut = RemoteFeedLoader(url: url, client: client)
@@ -42,20 +60,30 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     private class HttpClientSpy: HttpClient{
         
-        var completions = [(Error)->Void]()
+        var completions = [(Error?, HTTPURLResponse?)->Void]()
         
-        private var message = [(url: URL, completion:(Error) -> Void)]()
+        private var message = [(url: URL, completion:(Error?, HTTPURLResponse?) -> Void)]()
         
         var requestURL: [URL] {
             return message.map { $0.url }
         }
         
-        func get(from url: URL, completion: @escaping (Error) -> Void) {
+        func get(from url: URL, completion: @escaping (Error?, HTTPURLResponse?) -> Void) {
             message.append((url, completion))
         }
         
         func complete(_ error: Error, at index: Int = 0) {
-            message[index].completion(error)
+            message[index].completion(error, nil)
+        }
+        
+        func complete(withStatusCode code: Int, at index: Int = 0) {
+            
+            let response = HTTPURLResponse(
+                url: requestURL[index],
+                statusCode: code,
+                httpVersion: nil,
+                headerFields: nil)
+            message[index].completion(nil, response)
         }
     }
 }

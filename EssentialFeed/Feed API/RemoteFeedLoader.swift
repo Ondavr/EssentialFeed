@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol HttpClient {
-    func get(from url: URL,completion: @escaping (Error) -> Void)
+    func get(from url: URL,completion: @escaping (Error?, HTTPURLResponse?) -> Void)
 }
 
 public final class RemoteFeedLoader {
@@ -27,8 +27,13 @@ public final class RemoteFeedLoader {
     }
     
     public func load(complition: @escaping (Error) -> Void) {
-        client.get(from: url) { error in
-            complition(.connectivity)
+        client.get(from: url) { error, response in
+            if response != nil {
+                complition(.invalidData)
+            } else  {
+                complition(.connectivity)
+            }
+            
         }
     }
 }
